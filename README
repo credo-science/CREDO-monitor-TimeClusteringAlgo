@@ -1,0 +1,46 @@
+*****************************************************************************
+-------------------------TIME CLUSTERING ALGORITHM---------------------------
+*****************************************************************************
+Date of last modification: 12/07/2018
+Contact: kalmeidacheminant@gmail.com
+
+This documentation contains the informations regarding the use of the algorithm.
+For the detailed description of the analysis, please refer to this link:
+
+https://credo2.cyfronet.pl/redmine/projects/time/wiki
+
+and the comments in the codes.
+
+------------------HOW TO RUN THE ALGORITHM----------------------
+
+Files: 
+	-run.sh: contains the declaration of important parameters, compilation and execution of the two programs.
+
+	-analysisMain.cpp: main analysis is contained in this file. As an input, it requires the multiplet value (fixed to 2 for the moment),\
+	the user id and name, and the date at which the analysis is run.
+
+	-plot4user.C: root macro to create a plot based on the output of the analysis.
+
+Procedure:
+
+The input file required for this analysis is a .txt file containing timestamps in second (UNIX time format) sorted in increasing values in one column.
+This txt file must have the following format:
+						timestamp_userID.txt
+
+Once the parameters are set in run.sh, run the command 'run.sh'.
+The output of analysisMain.cpp will be two files (three if you decide to pipe the terminal output in a txt file):
+
+	-root file containing histrograms showing the distribution of test statistic and number of doublets for the scrambled maps
+
+	-txt file containing the parameters necessary for the final plot
+	-> each time the analysis is run, a new line is added, creating a new point for the plot with its x-coordinate given by the date at which the analysis
+	was run.
+	Each line shows:
+
+	1/date	2/expected test statistic value (log10)	3/observed test statistic value (log10)	4/3 sigma limit for TS	5/5 sigma limit for TS	6/expected number of doublets	7/observed number of doublets	8/3 sigma limit for doublets	9/5 sigma limit for doublets
+
+This txt file is used to obtain the test statistic and doublets plots with the root macro plot4user.C. The plots are saved as both .root and .png files.
+
+
+
+
