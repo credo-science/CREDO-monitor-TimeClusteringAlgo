@@ -43,59 +43,16 @@ void sort_array(int numOfEvents, double array[])
 //calculate time difference between consecutive events, given the number of consecutive events one wishes to look at (mutiplet)
 double timeDiff_funct(const int numOfEvents, double timeStamp[], int firstEvent, int multiplet)
 {
-	double deltaT;
 
-    if (multiplet==2)
-    {
-        deltaT = timeStamp[firstEvent+1] - timeStamp[firstEvent];
-    }
-
-    else if (multiplet==3)
-    {
-        deltaT = 2*(timeStamp[firstEvent+2] - timeStamp[firstEvent]);
-    }
-
-    else if (multiplet==4)
-    {
-        deltaT = 3*(timeStamp[firstEvent+3] - timeStamp[firstEvent])+(timeStamp[firstEvent+2]-timeStamp[firstEvent+1]);
-    }
-
-    else if (multiplet==5)
-    {
-        deltaT = 4*(timeStamp[firstEvent+4] - timeStamp[firstEvent])+2*(timeStamp[firstEvent+3] - timeStamp[firstEvent+1]);
-    }
-
-    else if (multiplet==6)
-    {
-        deltaT = 5*(timeStamp[firstEvent+5] - timeStamp[firstEvent])+3*(timeStamp[firstEvent+4] - timeStamp[firstEvent+1])+(timeStamp[firstEvent+3] - timeStamp[firstEvent+2]);
-    }
-
-    else if (multiplet==7)
-    {
-        deltaT = 6*(timeStamp[firstEvent+6] - timeStamp[firstEvent])+4*(timeStamp[firstEvent+5] - timeStamp[firstEvent+1])+2*(timeStamp[firstEvent+4] - timeStamp[firstEvent+2]);
-    }
-
-    else if (multiplet==8)
-    {
-        deltaT = 7*(timeStamp[firstEvent+7] - timeStamp[firstEvent])+5*(timeStamp[firstEvent+6] - timeStamp[firstEvent+1])+3*(timeStamp[firstEvent+5] - timeStamp[firstEvent+2])+(timeStamp[firstEvent+4] - timeStamp[firstEvent+3]);
-    }
-
-    else if (multiplet==9)
-    {
-        deltaT = 8*(timeStamp[firstEvent+8] - timeStamp[firstEvent])+6*(timeStamp[firstEvent+7] - timeStamp[firstEvent+1])+4*(timeStamp[firstEvent+6] - timeStamp[firstEvent+2])+2*(timeStamp[firstEvent+5] - timeStamp[firstEvent+3]);
-    }
-
-    else if (multiplet==10)
-    {
-        deltaT = 9*(timeStamp[firstEvent+9] - timeStamp[firstEvent])+7*(timeStamp[firstEvent+8] - timeStamp[firstEvent+1])+5*(timeStamp[firstEvent+7] - timeStamp[firstEvent+2])+3*(timeStamp[firstEvent+6] - timeStamp[firstEvent+3])+(timeStamp[firstEvent+5] - timeStamp[firstEvent+4]);
-    }
-
-    else if (multiplet==15)
-    {
-        deltaT = 14*(timeStamp[firstEvent+14] - timeStamp[firstEvent])+12*(timeStamp[firstEvent+13] - timeStamp[firstEvent+1])+10*(timeStamp[firstEvent+12] - timeStamp[firstEvent+2])+8*(timeStamp[firstEvent+11] - timeStamp[firstEvent+3])+6*(timeStamp[firstEvent+10] - timeStamp[firstEvent+4])+4*(timeStamp[firstEvent+9] - timeStamp[firstEvent+5])+2*(timeStamp[firstEvent+8] - timeStamp[firstEvent+6]);
-    }
-
-    return deltaT;
+	int j = 1,k = 0;
+	double deltaT = 0;
+	while (j < multiplet)
+	{
+		deltaT += (multiplet - j)*(timeStamp[firstEvent + (multiplet - k - 1)] - timeStamp[firstEvent + k]);
+		j += 2;
+		k++;
+	}
+	return deltaT;
 }
 
 //calculate the test statistic of a given data set for a given multiplet value
