@@ -2,6 +2,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <ctime>
 
 #include "TH1.h"
 #include "TF1.h"
@@ -16,86 +17,53 @@ using namespace std;
 //g++ analysis_main.cpp `root-config --cflags` `root-config --glibs` -o analysisMain
 
 //sort array in increasing values
-void sort_array(int numOfEvents, double array[]) 
+int partition(double tablica[], int p, int r) // divide the tables into two parts, in the first all numbers are smaller or equal x, in the second bigger or equal to x
 {
-    for(int j = 0; j < numOfEvents - 1; j++)
+    double x = tablica[p],w; // we choose x
+    int i = p, j = r; // i, j - indexes in the array
+    while (true) // infinite loop - leave it only by return j
+        {
+        while (tablica[j] > x)
+            j--;
+        while (tablica[i] < x)
+            i++;
+        if (i < j) // we change places when i <j
+        {
+            w = tablica[i];
+            tablica[i] = tablica[j];
+            tablica[j] = w;
+            i++;
+            j--;
+        }
+        else // when i> = j we return j as the partition point of the array
+            return j;
+        }
+}
+
+void quicksort(double tablica[], int p, int r) // qsort
+{
+    int q;
+    if (p < r)
     {
-        double currentMin = array[j];
-        int currentMinIndex = j;
-
-        for(int k = j+1; k < numOfEvents; k++)
-        {
-            if(currentMin > array[k])
-            {
-                currentMin = array[k];
-                currentMinIndex = k;
-            }
-        }
-
-        if(currentMinIndex != j)
-        {
-            array[currentMinIndex] = array[j];
-            array[j] = currentMin;
-        }
+        q = partition(tablica,p,r); // we divide the arrays into two parts; q is the partition point
+        quicksort(tablica, p, q); // we recursively call the quicksort for the first part of the array
+        quicksort(tablica, q+1, r); // we recursively call the quicksort for the second part of the array
     }
 }
+////////////////////////////////////////////////////
 
 //calculate time difference between consecutive events, given the number of consecutive events one wishes to look at (mutiplet)
 double timeDiff_funct(const int numOfEvents, double timeStamp[], int firstEvent, int multiplet)
 {
-	double deltaT;
+	int k = 0;
+    double deltaT = 0;
 
-    if (multiplet==2)
+    while ((2*k+1) < multiplet)
     {
-        deltaT = timeStamp[firstEvent+1] - timeStamp[firstEvent];
+        deltaT += (multiplet - (2*k+1))*(timeStamp[firstEvent + (multiplet - k - 1)] - timeStamp[firstEvent + k]);
+        k++;
     }
-
-    else if (multiplet==3)
-    {
-        deltaT = 2*(timeStamp[firstEvent+2] - timeStamp[firstEvent]);
-    }
-
-    else if (multiplet==4)
-    {
-        deltaT = 3*(timeStamp[firstEvent+3] - timeStamp[firstEvent])+(timeStamp[firstEvent+2]-timeStamp[firstEvent+1]);
-    }
-
-    else if (multiplet==5)
-    {
-        deltaT = 4*(timeStamp[firstEvent+4] - timeStamp[firstEvent])+2*(timeStamp[firstEvent+3] - timeStamp[firstEvent+1]);
-    }
-
-    else if (multiplet==6)
-    {
-        deltaT = 5*(timeStamp[firstEvent+5] - timeStamp[firstEvent])+3*(timeStamp[firstEvent+4] - timeStamp[firstEvent+1])+(timeStamp[firstEvent+3] - timeStamp[firstEvent+2]);
-    }
-
-    else if (multiplet==7)
-    {
-        deltaT = 6*(timeStamp[firstEvent+6] - timeStamp[firstEvent])+4*(timeStamp[firstEvent+5] - timeStamp[firstEvent+1])+2*(timeStamp[firstEvent+4] - timeStamp[firstEvent+2]);
-    }
-
-    else if (multiplet==8)
-    {
-        deltaT = 7*(timeStamp[firstEvent+7] - timeStamp[firstEvent])+5*(timeStamp[firstEvent+6] - timeStamp[firstEvent+1])+3*(timeStamp[firstEvent+5] - timeStamp[firstEvent+2])+(timeStamp[firstEvent+4] - timeStamp[firstEvent+3]);
-    }
-
-    else if (multiplet==9)
-    {
-        deltaT = 8*(timeStamp[firstEvent+8] - timeStamp[firstEvent])+6*(timeStamp[firstEvent+7] - timeStamp[firstEvent+1])+4*(timeStamp[firstEvent+6] - timeStamp[firstEvent+2])+2*(timeStamp[firstEvent+5] - timeStamp[firstEvent+3]);
-    }
-
-    else if (multiplet==10)
-    {
-        deltaT = 9*(timeStamp[firstEvent+9] - timeStamp[firstEvent])+7*(timeStamp[firstEvent+8] - timeStamp[firstEvent+1])+5*(timeStamp[firstEvent+7] - timeStamp[firstEvent+2])+3*(timeStamp[firstEvent+6] - timeStamp[firstEvent+3])+(timeStamp[firstEvent+5] - timeStamp[firstEvent+4]);
-    }
-
-    else if (multiplet==15)
-    {
-        deltaT = 14*(timeStamp[firstEvent+14] - timeStamp[firstEvent])+12*(timeStamp[firstEvent+13] - timeStamp[firstEvent+1])+10*(timeStamp[firstEvent+12] - timeStamp[firstEvent+2])+8*(timeStamp[firstEvent+11] - timeStamp[firstEvent+3])+6*(timeStamp[firstEvent+10] - timeStamp[firstEvent+4])+4*(timeStamp[firstEvent+9] - timeStamp[firstEvent+5])+2*(timeStamp[firstEvent+8] - timeStamp[firstEvent+6]);
-    }
-
-    return deltaT;
+        return deltaT;
 }
 
 //calculate the test statistic of a given data set for a given multiplet value
@@ -103,7 +71,7 @@ void TS_funct(const int numOfEvents, int multiplet, double timeStamp[], double t
 {
 	double timeDiff;
 
-    int j = 0; 
+    int j = 0;
 
     while (j <= numOfEvents - multiplet)
     {
@@ -111,7 +79,7 @@ void TS_funct(const int numOfEvents, int multiplet, double timeStamp[], double t
 
         if (timeDiff < testStatistic[i])
         {
-            testStatistic[i] = timeDiff; // test statistic is defined as the smallest time difference 
+            testStatistic[i] = timeDiff; // test statistic is defined as the smallest time difference
         }
 
         j++;
@@ -121,17 +89,17 @@ void TS_funct(const int numOfEvents, int multiplet, double timeStamp[], double t
 //calculate how many times two events are found within a 5 minutes time window
 void Doublet_funct(const int numOfEvents, int multiplet, double timeStamp[], double counterNumOfDoublets_SC[], int i)
 {
-    int j = 0; 
-
+    int j = 0;
     while (j <= numOfEvents - multiplet)
     {
-        if (timeStamp[j+1] - timeStamp[j] <= 300)
+	if ((timeStamp[j+1] - timeStamp[j] <= 300) && (timeStamp[j+1] != timeStamp[j])) // in short: I added the condition because I'm not sure what data is being analyzed, and this makes the observed doublets less than expected
         {
-            counterNumOfDoublets_SC[i]++; // if 2 events are within 300 sec (5 min), counter is incremented by one
+            counterNumOfDoublets_SC[i]++;
         }
 
         j++;
     }
+
 }
 
 //finds the smallest value in an array
@@ -170,7 +138,7 @@ double max_array(double array[], int numOfScrMaps)
 3 and 5 sigma values as well as the p-value and the sigma of test statistic of data*/
 void fit_histo_TS(TH1D* histo, double testStatistic_data, double parameters_TS[])
 {
-    double startPoint = histo->GetBinLowEdge(2);   
+    double startPoint = histo->GetBinLowEdge(2);
     int maxBinLoc = histo->GetMaximumBin();
     double endPoint = histo->GetBinLowEdge(maxBinLoc-3);
     double binWidth = histo->GetBinWidth(maxBinLoc);
@@ -194,7 +162,7 @@ void fit_histo_TS(TH1D* histo, double testStatistic_data, double parameters_TS[]
         }
 
         startPoint = startPoint + binWidth/2;
-        tempEndPoint = startPoint + 8*binWidth; 
+        tempEndPoint = startPoint + 8*binWidth;
     }
 
     TF1 *fit1 = new TF1("fit1","expo",realStartPoint, realEndPoint);
@@ -256,10 +224,10 @@ void fit_histo_TS(TH1D* histo, double testStatistic_data, double parameters_TS[]
     parameters_TS[2] = ts_5sig;
 }
 
-/*obtain parameters of doublet distribution of scrambled maps and calculate significance of number 
+/*obtain parameters of doublet distribution of scrambled maps and calculate significance of number
 of doublets found in data*/
 void fit_histo_doublet(TH1D* histo, double counterNumOfDoublets_data, double parameters_doublet[])
-{    
+{
     double mean = histo->GetMean();
     double std = histo->GetRMS();
 
@@ -267,17 +235,19 @@ void fit_histo_doublet(TH1D* histo, double counterNumOfDoublets_data, double par
     parameters_doublet[1] = mean + 3*std;
     parameters_doublet[2] = mean + 5*std;
 }
- 
+
 
 //int main(int multiplet, string user_name, int user_id, int currentDate)
 int main(int nargv, char **argv)
 {
+    time_t start,end;
+    time (&start);
 	// extracting arguments
 	int multiplet = atoi(argv[1]);
     string user_name = argv[2];
     int user_id = atoi(argv[3]);
     int currentDate = atoi(argv[4]);
-        
+
     // Input file - timestamps
 	ifstream input;
   	char data [256];
@@ -304,12 +274,12 @@ int main(int nargv, char **argv)
    		cout << "Unable to open file." << endl;
    		return 0;
  	}
- 	
+
  	while (input >> time_of_evt)
  	{
  		timeStamp_Data_Vec_TS.push_back(time_of_evt);
     	timeStamp_Data_Vec_Doublet.push_back(time_of_evt);
-   		
+
    		numOfEvents++; // Counting the number of events in data file
  	}
  	input.close();
@@ -349,10 +319,10 @@ int main(int nargv, char **argv)
 
   	double firstTime_Doublet = timeStamp_Data_Doublet[0], lastTime_Doublet = timeStamp_Data_Doublet[numOfEvents_Doublet-1]; // saving first and last timestamp of data
 	double timeSpan_Doublet = lastTime_Doublet - firstTime_Doublet; // time duration between first and last detection
-	
+
 	// Scrambled maps (SM) variables
 	TRandom *r1 = new TRandom3();
-	double rand1; 
+	double rand1;
 	double timeStamp_SC_TS[numOfEvents_TS], timeStamp_SC_Doublet[numOfEvents_Doublet]; // 2 dimensional array storing randomly generated timestamps for each SM
 	double testStatistic_SC[numScrMaps]; //array storing the TS value for each SM
 	double counterNumOfDoublets_SC[numScrMaps]; //array storing the number of doublets found in each SM
@@ -372,18 +342,18 @@ int main(int nargv, char **argv)
 				timeStamp_SC_TS[j] = firstTime_TS + rand1*timeSpan_TS;
 			}
 
-			timeStamp_SC_Doublet[j] = firstTime_Doublet + rand1*timeSpan_Doublet;		
+			timeStamp_SC_Doublet[j] = firstTime_Doublet + rand1*timeSpan_Doublet;
 		}
 
 		// sorting arrays rows in increasing timestamps
-		sort_array(numOfEvents_TS,timeStamp_SC_TS); 
-		sort_array(numOfEvents_Doublet,timeStamp_SC_Doublet);
+		quicksort(timeStamp_SC_TS,0,numOfEvents_TS-1);
+		quicksort(timeStamp_SC_Doublet,0,numOfEvents_Doublet-1);
 
 		// performing both TS and doublet analysis
-		TS_funct(numOfEvents_TS,multiplet,timeStamp_SC_TS,testStatistic_SC,i); 
+		TS_funct(numOfEvents_TS,multiplet,timeStamp_SC_TS,testStatistic_SC,i);
 		Doublet_funct(numOfEvents_Doublet,multiplet,timeStamp_SC_Doublet,counterNumOfDoublets_SC,i);
-				
-	}	
+
+	}
 	//**********************************************************************************************
 
 	double maxBin_TS = max_array(testStatistic_SC,numScrMaps); // variable to store the highest TS for histogram purpose
@@ -425,10 +395,10 @@ int main(int nargv, char **argv)
 	//***********Unblinding data: calculating test statistic and number of doublets*****************
 	double testStatistic_Data_array[1];
 	double counterNumOfDoublets_Data_array[1];
-	
+
 	testStatistic_Data_array[0] = lastTime_TS;
 	counterNumOfDoublets_Data_array[0] = 0;
-	
+
 	TS_funct(numOfEvents_TS,multiplet,timeStamp_Data_TS,testStatistic_Data_array,0);
 	Doublet_funct(numOfEvents_Doublet,multiplet,timeStamp_Data_Doublet,counterNumOfDoublets_Data_array,0);
 	//**********************************************************************************************
@@ -463,4 +433,7 @@ int main(int nargv, char **argv)
 
 	// saving all parameters needed for plots in output file
 	fprintf(pfile, "%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n",currentDate,meanTS_SC,log10(testStatistic_Data),threeSig_TS,fiveSig_TS,meanNumOfDoublets_SC,counterNumOfDoublets_Data,threeSig_doublet,fiveSig_doublet);
+	time (&end);
+double dif = difftime (end,start);
+printf ("Elasped time is %.2lf seconds.", dif );
 }
